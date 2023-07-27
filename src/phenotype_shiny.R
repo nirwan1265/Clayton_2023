@@ -3,6 +3,13 @@ library(shinydashboard)
 library(DT)
 library(ggplot2)
 library(dplyr)
+library(googlesheets4)
+gs4_auth()
+
+# https://docs.google.com/spreadsheets/d/1e9963LdfMkas-KQHrQNLIvkyWHFOFYxJstpMjiRHfcA/edit#gid=0&fvid=375149192
+# id is after d
+spreadsheet_id <- "1e9963LdfMkas-KQHrQNLIvkyWHFOFYxJstpMjiRHfcA"
+sheet_name <- "Sheet1"
 
 ui <- dashboardPage(
   dashboardHeader(title = "CLY23-D4 FieldBook Analysis"),
@@ -38,7 +45,7 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   data <- reactive({
     # Read data
-    df <- read.csv("/Users/nirwan/Library/Mobile Documents/com~apple~CloudDocs/Github/Clayton_2023/data/CLY23-D4-FieldBook.csv", stringsAsFactors = FALSE, check.names = F)
+    df <- read_sheet(spreadsheet_id,sheet=sheet_name)
     updateSelectInput(session, "genotype", choices = unique(df$`Female genotype`))
     updateSelectInput(session, "species", choices = unique(df$Species))
     updateSelectInput(session, "hist_var", choices = names(df))
@@ -61,9 +68,3 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui = ui, server = server)
-unique(df$Female.genotype)
-colnames(df)
-typeof(df$`PH (cm)`)
-hist(df$`PH (cm)`)
-
-str(df)
