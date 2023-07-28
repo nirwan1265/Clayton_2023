@@ -4,6 +4,7 @@ library(DT)
 library(ggplot2)
 library(dplyr)
 library(googlesheets4)
+library(googledrive)
 gs4_auth()
 
 # https://docs.google.com/spreadsheets/d/1e9963LdfMkas-KQHrQNLIvkyWHFOFYxJstpMjiRHfcA/edit#gid=0&fvid=375149192
@@ -49,7 +50,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, "genotype", choices = unique(df$`Female genotype`))
     updateSelectInput(session, "species", choices = unique(df$Species))
     updateSelectInput(session, "hist_var", choices = names(df))
-    df
+    
   })
   
   output$dataTable <- DT::renderDataTable({
@@ -63,8 +64,12 @@ server <- function(input, output, session) {
   
   output$histPlot <- renderPlot({
     req(input$hist_var)
-    hist(df[[input$hist_var]], main = paste("Histogram of", input$hist_var), xlab = input$hist_var)
+    hist(data()[[input$hist_var]], main = paste("Histogram of", input$hist_var), xlab = input$hist_var)
   })
+  
 }
 
 shinyApp(ui = ui, server = server)
+
+colnames(df)
+str(df)
