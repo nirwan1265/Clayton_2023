@@ -5,6 +5,7 @@ library(ggplot2)
 library(dplyr)
 library(googlesheets4)
 library(googledrive)
+library(plotly)
 gs4_auth()
 
 # https://docs.google.com/spreadsheets/d/1e9963LdfMkas-KQHrQNLIvkyWHFOFYxJstpMjiRHfcA/edit#gid=0&fvid=375149192
