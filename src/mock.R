@@ -29,19 +29,19 @@ ui <- dashboardPage(
               verbatimTextOutput("stats")
       ),
       tabItem(tabName = "histogram",
-              selectInput("fig_var", "Select a variable", choices = NULL),
+              selectInput("hist_var", "Select a variable", choices = NULL),
               plotOutput("hist")
       ),
       tabItem(tabName = "violin",
-              selectInput("fig_var", "Select a variable", choices = NULL),
+              selectInput("violin_var", "Select a variable", choices = NULL),
               plotOutput("violin")
       ),
       tabItem(tabName = "boxplot",
-              selectInput("fig_var", "Select a variable", choices = NULL),
+              selectInput("box_var", "Select a variable", choices = NULL),
               plotOutput("boxplot")
       ),
       tabItem(tabName = "density",
-              selectInput("fig_var", "Select a variable", choices = NULL),
+              selectInput("density_var", "Select a variable", choices = NULL),
               plotOutput("density")
       ),
       tabItem(tabName = "scatter",
@@ -54,15 +54,19 @@ ui <- dashboardPage(
 )
 
 
+
 server <- function(input, output, session) {
   data <- reactive({
     df <- read.csv("data/CLY23-D4-FieldBook.csv", stringsAsFactors = F)
     df$DTS <- as.Date(df$DTS, format = "%d/%m/%Y")
     df$DTA <- as.Date(df$DTA, format = "%d/%m/%Y")
-    updateSelectInput(session, "fig_var", choices = names(df[sapply(df, is.numeric)]))
+    updateSelectInput(session, "hist_var", choices = names(df[sapply(df, is.numeric)]))
+    updateSelectInput(session, "violin_var", choices = names(df[sapply(df, is.numeric)]))
+    updateSelectInput(session, "box_var", choices = names(df[sapply(df, is.numeric)]))
+    updateSelectInput(session, "density_var", choices = names(df[sapply(df, is.numeric)]))
     updateSelectInput(session, "scatter_var1", choices = names(df[sapply(df, is.numeric)]))
     updateSelectInput(session, "scatter_var2", choices = names(df[sapply(df, is.numeric)]))
-    updateSelectInput(session, "stat_var", choices = names(df[sapply(df, is.numeric)]))  # Update the "stat_var"
+    updateSelectInput(session, "stat_var", choices = names(df[sapply(df, is.numeric)]))
     df
   })
   
@@ -155,45 +159,44 @@ server <- function(input, output, session) {
   
   output$hist <- renderPlot({
     df <- data()
-    if (!is.null(input$fig_var) & input$fig_var %in% names(df)) {
-      hist(df[[input$fig_var]], main = paste(input$fig_var, "Histogram"), xlab = NULL, col = "skyblue")
+    if (!is.null(input$hist_var) & input$hist_var %in% names(df)) {
+      hist(df[[input$hist_var]], main = paste(input$hist_var, "Histogram"), xlab = NULL, col = "skyblue")
     }
   })
   
   output$violin <- renderPlot({
     df <- data()
-    if (!is.null(input$fig_var) & input$fig_var %in% names(df)) {
-      ggplot(df, aes(x = "", y = .data[[input$fig_var]])) +
+    if (!is.null(input$violin_var) & input$violin_var %in% names(df)) {
+      ggplot(df, aes(x = "", y = .data[[input$violin_var]])) +
         geom_violin(fill = "skyblue") +
-        labs(x = NULL, y = NULL, title = paste(input$fig_var, "Violin Plot")) +
+        labs(x = NULL, y = NULL, title = paste(input$violin_var, "Violin Plot")) +
         theme_minimal()
     }
   })
   
   output$boxplot <- renderPlot({
     df <- data()
-    if (!is.null(input$fig_var) & input$fig_var %in% names(df)) {
-      boxplot(df[[input$fig_var]], main = paste(input$fig_var, "Boxplot"), xlab = NULL, col = "skyblue")
+    if (!is.null(input$box_var) & input$box_var %in% names(df)) {
+      boxplot(df[[input$box_var]], main = paste(input$box_var, "Boxplot"), xlab = NULL, col = "skyblue")
     }
   })
   
   output$density <- renderPlot({
     df <- data()
-    if (!is.null(input$fig_var) & input$fig_var %in% names(df)) {
-      plot(density(df[[input$fig_var]], na.rm = TRUE), main = paste(input$fig_var, "Density Plot"))
+    if (!is.null(input$density_var) & input$density_var %in% names(df)) {
+      plot(density(df[[input$density_var]], na.rm = TRUE), main = paste(input$density_var, "Density Plot"))
     }
   })
   
-  output$scatter <- renderPlotly({
+  output$scatter <- renderPlot({
     df <- data()
     if (!is.null(input$scatter_var1) & !is.null(input$scatter_var2) & input$scatter_var1 %in% names(df) & input$scatter_var2 %in% names(df)) {
-      # Filter out rows with NA in the variables to be plotted
-      df <- df[!is.na(df[[input$scatter_var1]]) & !is.na(df[[input$scatter_var2]]), ]
-      plot_ly(df, x = ~.data[[input$scatter_var1]], y = ~.data[[input$scatter_var2]], type = 'scatter', mode = 'markers', text = ~paste('CLY23.D4:', .data$CLY23.D4, 'Rep:', .data$Rep), hoverinfo = 'text') %>%
-        layout(title = "Scatter Plot", xaxis = list(title = input$scatter_var1), yaxis = list(title = input$scatter_var2))
+      ggplot(df, aes_string(x = input$scatter_var1, y = input$scatter_var2)) +
+        geom_point() +
+        labs(title = "Scatter Plot", x = input$scatter_var1, y = input$scatter_var2) +
+        theme_minimal()
     }
   })
-  
 }
 
 shinyApp(ui, server)
